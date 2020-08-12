@@ -9,6 +9,7 @@ using System;
 using System.Net.Http;
 using Polly;
 using Polly.Extensions.Http;
+using Microsoft.Extensions.Hosting;
 
 namespace Agl.Client
 {
@@ -20,37 +21,60 @@ namespace Agl.Client
         /// The entry point for the program
         /// </summary>
         /// <param name="args">The arguments.</param>
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             Configuration = GetConfiguration();
             Log.Logger = CreateSerilogLogger(Configuration);
-            var services = new ServiceCollection();
-            ConfigureServices(services);
 
-            var serviceProvider = services.BuildServiceProvider();
-            var writer = serviceProvider.GetService<PeopleInfoConsoleWriter>();
-            writer.Run().Wait();
-            Console.Read();
+            try
+            {
+                var builder = new HostBuilder();
+                ConfigureServices(builder);
+                builder.UseConsoleLifetime();
+                var host = builder.Build();
+                using (var serviceScope = host.Services.CreateScope())
+                {
+                    var serviceProvider = serviceScope.ServiceProvider;
+                    var writer = serviceProvider.GetService<PeopleInfoConsoleWriter>();
+                    writer.Run().Wait();
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+                return 1;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         /// <summary>
         /// Configures the services.
         /// </summary>
         /// <param name="services">The services</param>
-        static void ConfigureServices(IServiceCollection services)
+        static void ConfigureServices(HostBuilder builder)
         {
-            services.AddSingleton(Configuration);
-            services.AddOptions();
+            builder.ConfigureServices((hostContext, services) =>
+            {
+                services.AddSingleton(Configuration);
+                services.AddOptions();
 
-            services.Configure<AppSettings>(options => 
-            Configuration.GetSection("AppSettings").Bind(options));
-            services.AddSingleton(sp => sp.GetService<IOptions<AppSettings>>().Value);
+                services.Configure<AppSettings>(options =>
+                Configuration.GetSection("AppSettings").Bind(options));
+                services.AddSingleton(sp => sp.GetService<IOptions<AppSettings>>().Value);
 
-            services.AddHttpClient<IPeopleService, PeopleService>()
-                 .SetHandlerLifetime(TimeSpan.FromMinutes(5))
-                 .AddPolicyHandler(GetRetryPolicy());
+                var settings = Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>();
+                services.AddHttpClient<IPeopleService, PeopleService>(client =>
+                {
+                    client.BaseAddress = new Uri(settings.PeopleServiceClientConfig.Url);
+                }).SetHandlerLifetime(TimeSpan.FromMinutes(5)).AddPolicyHandler(GetRetryPolicy());
 
-            services.AddTransient<PeopleInfoConsoleWriter>();
+                services.AddTransient<PeopleInfoConsoleWriter>();
+            });
         }
 
         private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()

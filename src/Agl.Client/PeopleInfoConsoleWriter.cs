@@ -21,31 +21,27 @@ namespace Agl.Client
 
         public async Task Run()
         {
-            try
+            var result = await _peopleService.FetchAllAsync();
+            if (result == null || result.Count() == 0)
             {
-                var result = await _peopleService.FetchAllAsync();
-                if (result == null || result.Count() == 0)
-                {
-                    Console.WriteLine(Resource.NoResultFound);
-                    return;
-                }
-
-                var genderGroup = result.GroupBy(g => g.Gender);
-                foreach (var item in genderGroup)
-                {
-                    var gender = item.Key;
-                    var petCatCollection = item.Where(p => p.PetCollection != null)
-                    .SelectMany(p => p.PetCollection)
-                    .Where(p => p.Type.Equals("Cat", StringComparison.OrdinalIgnoreCase));
-                    Console.WriteLine(gender);
-                    foreach (var cat in petCatCollection.OrderBy(a => a.Name))
-                        Console.WriteLine(cat.Name);
-                }
+                Console.WriteLine(Resource.NoResultFound);
+                return;
             }
-            catch (Exception ex)
+
+            var genderGroup = result.GroupBy(g => g.Gender).ToList();
+            foreach (var item in genderGroup)
             {
-                Console.WriteLine(string.Format(Resource.NoResultFound, ex.Message));
-                _logger.LogError(ex, Resource.UnexpectedError);
+                var gender = item.Key;
+                var consoleTableHelper = new ConsoleTableHelper();
+                consoleTableHelper.AddColumn(gender);
+                var petCatCollection = item.Where(p => p.PetCollection != null)
+                .SelectMany(p => p.PetCollection)
+                .Where(p => p.Type.Equals("Cat", StringComparison.OrdinalIgnoreCase));
+
+                foreach (var cat in petCatCollection.OrderBy(a => a.Name))
+                    consoleTableHelper.AddRow(cat.Name);
+
+                consoleTableHelper.Write();
             }
         }
     }

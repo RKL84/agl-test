@@ -21,7 +21,6 @@ namespace Agl.Core.Infrastructure.Services
             _appSettings = appSettings;
             _logger = logger;
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri(_appSettings.PeopleServiceClientConfig.Url);
         }
 
         public async Task<IEnumerable<Person>> FetchAllAsync()
@@ -33,12 +32,9 @@ namespace Agl.Core.Infrastructure.Services
             try
             {
                 var response = await _httpClient.GetAsync(uri);
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogDebug("received a success response");
-                    var content = await response.Content.ReadAsStringAsync();
-                    result = JsonConvert.DeserializeObject<List<Person>>(content);
-                }
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                result = JsonConvert.DeserializeObject<List<Person>>(content);
             }
             catch (Exception ex)
             {

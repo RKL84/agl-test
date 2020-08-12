@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{CEAC1C64-8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Agl.Core", "src\Agl.Core\Agl.Core.csproj", "{979D6D91-5C4A-4D8B-9DE1-2372EFD75B3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agl.UnitTest", "test\Agl.UnitTest\Agl.UnitTest.csproj", "{0A2A0B62-E66E-493E-B320-42423C4B1231}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Agl.UnitTest", "test\Agl.UnitTest\Agl.UnitTest.csproj", "{0A2A0B62-E66E-493E-B320-42423C4B1231}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -48,6 +48,7 @@ namespace Agl.UnitTest
 
             var logger = Mock.Of<ILogger<PeopleService>>();
             var httpClient = new HttpClient(httpMessageHandler.Object);
+            httpClient.BaseAddress = new Uri("http://test/");
             var appSettings = new AppSettings();
             appSettings.PeopleServiceClientConfig = new PeopleServiceClientConfig() { Url = "http://test/", Endpoint = "endpoint" };
             var peopleService = new PeopleService(httpClient, appSettings, logger);
@@ -58,7 +59,7 @@ namespace Agl.UnitTest
         [TestMethod]
         public async Task TestService_OnErrorFromServer_ShouldThrowException()
         {
-            var httpMessageHandler = new Mock<HttpMessageHandler>();      
+            var httpMessageHandler = new Mock<HttpMessageHandler>();
             httpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
@@ -68,6 +69,7 @@ namespace Agl.UnitTest
 
             var logger = Mock.Of<ILogger<PeopleService>>();
             var httpClient = new HttpClient(httpMessageHandler.Object);
+            httpClient.BaseAddress = new Uri("http://test/");
             var appSettings = new AppSettings();
             appSettings.PeopleServiceClientConfig = new PeopleServiceClientConfig() { Url = "http://test/", Endpoint = "endpoint" };
             var peopleService = new PeopleService(httpClient, appSettings, logger);

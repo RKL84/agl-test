@@ -40,15 +40,6 @@ namespace Agl.UnitTest
         [TestMethod]
         public async Task TestService_OnErrorFromPersonServiceClient_ShouldDisplayError()
         {
-            var mockResponse = new List<Person>();
-            var person = new Person();
-            person.Name = "Bob";
-            person.Gender = "Male";
-            person.Age = 2;
-            person.PetCollection = new List<Pet>();
-            person.PetCollection.Add(new Pet() { Name = "Garfield", Type = "Cat" });
-            mockResponse.Add(person);
-
             var logger = Mock.Of<ILogger<PeopleInfoConsoleWriter>>();
             var peopleServiceMock = new Mock<IPeopleService>();
             peopleServiceMock.Setup(arg => arg.FetchAllAsync()).ThrowsAsync(new Exception("Error"));
