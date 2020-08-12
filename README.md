@@ -28,7 +28,7 @@ dotnet restore
 dotnet run
 ```
 
-![sample output](../master/images/image.png)
+![sample output](../master/images/sample-output.png)
 
 ## How to run unit tests
 
